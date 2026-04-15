@@ -1,0 +1,66 @@
+key,de-DE,en-US
+custom.data.type.vis.name,VIS-Verknüpfung,VIS link
+custom.data.type.vis.buttonMenu.detailInfo,Detailinfo,Detail info
+custom.data.type.vis.buttonMenu.edit,Bearbeiten,Edit
+custom.data.type.vis.buttonMenu.delete,Löschen,Delete
+custom.data.type.vis.field.documentReference,Akten-/Vorgangszeichen,Document reference
+custom.data.type.vis.field.type,Typ,Type
+custom.data.type.vis.field.content,Inhalt,Content
+custom.data.type.vis.field.lastChangeDate,Datum der letzten Änderung,Last change date
+custom.data.type.vis.search.placeholder,VIS-ID,VIS ID
+custom.data.type.vis.createDocument.header,Neue VIS-Akte anlegen,Create new VIS document
+custom.data.type.vis.createDocument.confirm,Erstellen,Create
+custom.data.type.vis.creationInProgress.info,Akte wird angelegt...,Creating document...
+custom.data.type.vis.detailInfo.loading,Lade Informationen,Loading information
+custom.data.type.vis.ok,OK,OK
+custom.data.type.vis.cancel,Abbrechen,Cancel
+custom.data.type.vis.creationNotPossible,"Bitte speichern Sie das Objekt, bevor Sie Akten oder Vorgänge verknüpfen.",Please save the object before linking files or processes.
+custom.data.type.vis.emptyFields.modal.title,Unvollständige Angaben,Incomplete data
+custom.data.type.vis.emptyFields.modal.text,"Bitte beachten Sie, dass nicht alle Felder, die für die Generierung des Akteninhalts benötigt werden, ausgefüllt wurden. Der Akteninhalt kann daher unvollständig sein. Nicht ausgefüllte Felder:","Please note that not all fields needed to generate the file content have been filled in. The file content may therefore be incomplete. Fields that have not been filled in:"
+custom.data.type.vis.error.visCreationUpdateFailure.title,Aktenerstellung fehlgeschlagen,Could not create document
+custom.data.type.vis.error.visCreationUpdateFailure.message,Die Akte konnte in VIS nicht angelegt werden.,The document could not be created in VIS.
+custom.data.type.vis.error.visCreationReadNewDocumentFailure.title,Aktenerstellung fehlgeschlagen,Could not create document
+custom.data.type.vis.error.visCreationReadNewDocumentFailure.message,Die in VIS neu angelegte Akte konnte nicht gelesen werden.,The document newly created in VIS could not be read.
+custom.data.type.vis.error.visCreationCreateLinkFailure.title,Aktenerstellung fehlgeschlagen,Could not create document
+custom.data.type.vis.error.visCreationCreateLinkFailure.message,Die in VIS neu angelegte Akte konnte nicht mit dem Objekt verknüpft werden.,The document newly created in VIS could not be linked to the object.
+custom.data.type.vis.error.visLinkMissingInput.title,Verknüpfung fehlgeschlagen,Linking process failed
+custom.data.type.vis.error.visLinkMissingInput.message,Bitte geben Sie ein Akten- oder Vorgangszeichen ein.,Please enter a reference number of a file or process.
+custom.data.type.vis.error.visLinkInvalidFormat.title,Verknüpfung fehlgeschlagen,Linking process failed
+custom.data.type.vis.error.visLinkInvalidFormat.message,Der eingegebene Text entspricht keinem gültigen Format eines Akten- oder Vorgangszeichens.,The text entered does not correspond to a valid format for a file or process reference number.
+custom.data.type.vis.error.visLinkFileNotFound.title,Verknüpfung fehlgeschlagen,Linking process failed
+custom.data.type.vis.error.visLinkFileNotFound.message,Es konnte keine Akte mit dem angegebenen Aktenzeichen gefunden werden.,No file with the entered file reference number could be found.
+custom.data.type.vis.error.visLinkProcessNotFound.title,Verknüpfung fehlgeschlagen,Linking process failed
+custom.data.type.vis.error.visLinkProcessNotFound.message,Es konnte kein Vorgang mit dem angegebenen Vorgangszeichen gefunden werden.,No process with the entered process reference number could be found.
+custom.data.type.vis.error.visLinkInsufficientRightsFile.title,Verknüpfung fehlgeschlagen,Linking process failed
+custom.data.type.vis.error.visLinkInsufficientRightsFile.message,"Sie besitzen nicht die nötige Berechtigung, um auf die Akte mit dem angegebenen Aktenzeichen zuzugreifen.",You do not have the necessary rights to access the file with the specified file reference number.
+custom.data.type.vis.error.visLinkInsufficientRightsProcess.title,Verknüpfung fehlgeschlagen,Linking process failed
+custom.data.type.vis.error.visLinkInsufficientRightsProcess.message,"Sie besitzen nicht die nötige Berechtigung, um auf den Vorgang mit dem angegebenen Vorgangszeichen zuzugreifen.",You do not have the necessary rights to access the process with the specified process reference number.
+custom.data.type.vis.error.visLinkCreateLinkFailureFile.title,Verknüpfung fehlgeschlagen,Linking process failed
+custom.data.type.vis.error.visLinkCreateLinkFailureFile.message,Die Akte konnte nicht mit dem Objekt verknüpft werden.,The file could not be linked to the object.
+custom.data.type.vis.error.visLinkCreateLinkFailureProcess.title,Verknüpfung fehlgeschlagen,Linking process failed
+custom.data.type.vis.error.visLinkCreateLinkFailureProcess.message,Der Vorgang konnte nicht mit dem Objekt verknüpft werden.,The process could not be linked to the object.
+custom.data.type.vis.edit.invalidEntry,Ungültiger Eintrag,Invalid entry
+custom.data.type.vis.config.parameter.mask.value.value.label,Nicht ausfüllen,Do not fill in
+userPlugin.vis.permissionGroup.label,Berechtigungsgruppe,Permission group
+userPlugin.vis.permissionGroup.none,Keine Berechtigungen,No permissions
+userPlugin.vis.permissionGroup.basic,Eingeschränkte Berechtigungen,Basic permissions
+userPlugin.vis.permissionGroup.full,Volle Berechtigungen,Full permissions
+userPlugin.vis.organizationUnit.label,Organisationseinheit,Organization unit
+userPlugin.vis.organizationUnit.hint,"Die Organisationseinheit, die bei neu angelegten VIS-Akten gesetzt wird, wenn für den gewählten Aktentyp keine Organisationseinheit festgelegt ist","The organization unit that will be set for newly created VIS documents in case no organization unit is defined for the chosen document type"
+server.config.name.system.vis,VIS,VIS
+server.config.parameter.system.vis.api_url.label,API-URL,API URL
+server.config.parameter.system.vis.vis_url.label,VIS-URL,VIS URL
+server.config.parameter.system.vis.mandate_id.label,Mandaten-ID,Mandate ID
+server.config.parameter.system.vis.file_type_name.label,Name des Aktentyps (als URL-Bestandteil),Name of file type (as part of  URL)
+server.config.parameter.system.vis.process_type_name.label,Name des Vorgangstyps (als URL-Bestandteil),Name of process type (as part of URL)
+server.config.parameter.system.vis.user_information.label,Nutzerinformation,User information
+server.config.parameter.system.vis.procedure_information.label,Fachverfahreninformation,Procedure information
+server.config.parameter.system.vis.link_name_prefix.label,Präfix von Linkbezeichnungen,Prefix of link names
+server.config.parameter.system.vis.subtype_field_path.label,Pfad zur Subtypbezeichnung in den VIS-Dokumentdaten,Path to subtype name in VIS document data
+server.config.parameter.system.vis.access_user_group_id.label,Benutzergruppe für vollen Plugin-Zugriff,User group for full plugin access
+server.config.parameter.system.vis.types.label,Typen,Types
+server.config.parameter.system.vis.types.id.label,Aktenplanschlüssel,Aktenplanschlüssel
+server.config.parameter.system.vis.types.label.label,Anzeigename in der Auswahlliste,Display name in selection list
+server.config.parameter.system.vis.types.name.label,Denkmalaktentyp in VIS,Subtype in VIS
+server.config.parameter.system.vis.types.storage_identifier.label,Identifier der Ablage,Storage identifier
+server.config.parameter.system.vis.types.user_group_id.label,Benutzergruppe,User group

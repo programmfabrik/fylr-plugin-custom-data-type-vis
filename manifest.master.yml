@@ -1,0 +1,92 @@
+plugin:
+  name: custom-data-type-vis
+  version: 1.0
+  url: https://github.com/programmfabrik/fylr-plugin-custom-data-type-vis
+  displayname:
+    de-DE: VIS
+    en-US: VIS
+  info:
+    de-DE: VIS
+    en-US: VIS
+  server:
+    api-version:
+      require: 1
+  webfrontend:
+    url: custom-data-type-vis.js
+    css: custom-data-type-vis.css
+  l10n: l10n/custom-data-type-vis.csv
+
+base_url_prefix: "webfrontend"
+
+custom_types:
+  vis:
+    config:
+      mask:
+        - name: value
+          parameters:
+            value:
+              type: text
+    mapping:
+      objektid:
+        type: number
+      zeichen:
+        type: string
+      typ:
+        type: string
+      subtyp:
+        type: string
+
+base_config:
+  - name: vis
+    parameters:
+      api_url:
+        type: text
+        position: 0
+      vis_url:
+        type: text
+        position: 1
+      mandate_id:
+        type: text
+        position: 2
+      file_type_name:
+        type: text
+        position: 3
+      process_type_name:
+        type: text
+        position: 4
+      user_information:
+        type: text
+        position: 5
+      procedure_information:
+        type: text
+        position: 6
+      subtype_field_path:
+        type: text
+        position: 7
+      link_name_prefix:
+        type: text
+        position: 8
+      access_user_group_id:
+        type: int
+        plugin_type: group_easydb_select
+        position: 9
+      types:
+        type: table
+        fields:
+          - name: id
+            type: text
+            position: 0
+          - name: label
+            type: text
+            position: 1
+          - name: name
+            type: text
+            position: 2
+          - name: storage_identifier
+            type: text
+            position: 3
+          - name: user_group_id
+            type: int
+            plugin_type: group_easydb_select
+            position: 4
+        position: 10

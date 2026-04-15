@@ -1,0 +1,69 @@
+.vis-plugin-layout .ez5-info_commonPlugin {
+	background-color: white;
+}
+
+.vis-plugin-layout .cui-label-content {
+  position: relative;
+  top: 2px;
+  padding-left: 4px;
+  line-height: 20px;
+}
+
+.vis-plugin-layout .creation-not-possible-info {
+  height: 24px;
+}
+
+.vis-plugin-layout .cui-horizontal-layout-left {
+  margin-left: 2px;
+  padding-right: 0 !important;
+}
+
+.vis-plugin-layout .create-document-button {
+  width: 34px;
+  border-right: 1px solid #ededed !important;
+}
+
+.vis-plugin-layout .cui-button.pluginDirectSelectEditSearchFylr.create-document-button .cui-button-visual {
+  border-left: none !important;
+}
+
+.vis-plugin-layout .link-document-button {
+  width: 34px;
+  border-left: 1px solid #ededed !important;
+}
+
+.vis-plugin-create-document-modal {
+  width: 450px;
+}
+
+.vis-plugin-create-document-modal .cui-form-key {
+  width: 70px;
+  min-width: 70px;
+}
+
+.vis-plugin-detail-info-icon {
+  position: relative;
+  bottom: 1px;
+  margin-left: 7px;
+}
+
+.vis-plugin-detail-info-icon .cui-button-visual {
+  width: 10px;
+  min-width: 10px;
+}
+
+.vis-plugin-detail-info-icon:active .cui-button-visual {
+  box-shadow: none !important;
+}
+
+.vis-plugin-detail-info-tooltip {
+  padding: 10px;
+}
+
+.vis-plugin-detail-info-tooltip div:not(:last-child) {
+  margin-bottom: 10px;
+}
+
+.vis-plugin-detail-info-tooltip b {
+  display: block;
+}
