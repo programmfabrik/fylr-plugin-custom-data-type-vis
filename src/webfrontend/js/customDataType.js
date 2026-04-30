@@ -70,7 +70,7 @@ var CustomDataTypeVIS = (function(superClass) {
         });
 
         return inputElement.start();
-    }
+    };
 
     Plugin.getSearchFilter = function(data, key = this.name()) {
         if (data[key + ':unset']) {
@@ -92,7 +92,7 @@ var CustomDataTypeVIS = (function(superClass) {
                 string: data[key].replace('VIS-SmartClient:', '').trim()
             };
         }
-    }
+    };
 
     Plugin.getHasValueFilter = function(data, key = this.name()) {
         if (data[key + ':has_value']) {
@@ -106,7 +106,7 @@ var CustomDataTypeVIS = (function(superClass) {
                 _unset_filter: true
             };
         }
-    }
+    };
 
     Plugin.getQueryFieldBadge = function(data) {
         const result = {
@@ -122,7 +122,7 @@ var CustomDataTypeVIS = (function(superClass) {
         }
 
         return result;
-    }
+    };
 
     Plugin.getSaveData = function(data, save_data, opts = {}) {
         if (this.isEmpty(data)) {
@@ -156,7 +156,7 @@ var CustomDataTypeVIS = (function(superClass) {
         }
 
         return container;
-    }
+    };
 
     Plugin.__getDetailInfoIconButton = function(cdata) {
         return new CUI.ButtonHref({
@@ -198,13 +198,13 @@ var CustomDataTypeVIS = (function(superClass) {
         layoutElement.replace(undefined, 'left');
         layoutElement.replace(this.__getCreationNotPossibleInfo(), 'center');
         layoutElement.replace(undefined, 'right');
-    }
+    };
 
     Plugin.__updateEditorInputForFilledField = function(data, cdata, systemObjectId, uuid, layoutElement) {
         layoutElement.replace(undefined, 'left');
         layoutElement.replace(this.__renderDocumentInfo(cdata), 'center');
         layoutElement.replace(this.__renderActionsButtonBar(data, cdata, systemObjectId, uuid, layoutElement), 'right');
-    }
+    };
 
     Plugin.__updateEditorInputForEmptyField = function(data, cdata, systemObjectId, uuid, layoutElement) {
         let inputElement;
@@ -219,14 +219,14 @@ var CustomDataTypeVIS = (function(superClass) {
         layoutElement.replace(this.__getCreateDocumentButton(data, cdata, systemObjectId, uuid, layoutElement), 'left');
         layoutElement.replace(inputElement, 'center');
         layoutElement.replace(linkButtonElement, 'right');
-    }
+    };
 
     Plugin.__getCreationNotPossibleInfo = function() {
         return new CUI.EmptyLabel({
             text: $$('custom.data.type.vis.creationNotPossible'),
             class: 'creation-not-possible-info'
         });
-    }
+    };
 
     Plugin.__getCreateDocumentButton = function(data, cdata, systemObjectId, uuid, layoutElement) {
         const types = this.__getCreatableTypes();
@@ -305,8 +305,8 @@ var CustomDataTypeVIS = (function(superClass) {
         return modal.show();   
     };
 
-    Plugin.__startDocumentCreation = function(type, data, cdata, systemObjectId, uuid, layoutElement) {
-        const { fullContent, shortContent, emptyFields } = this.__getNewDocumentContent(data, systemObjectId);
+    Plugin.__startDocumentCreation = async function(type, data, cdata, systemObjectId, uuid, layoutElement) {
+        const { fullContent, shortContent, emptyFields } = await this.__getNewDocumentContent(data, systemObjectId);
         if (emptyFields.length) {
             return this.__showEmptyFieldsWarning(type, data, cdata, systemObjectId, uuid, layoutElement, fullContent, shortContent, emptyFields);
         } else {
@@ -347,10 +347,11 @@ var CustomDataTypeVIS = (function(superClass) {
         });
     };
 
-    Plugin.__getNewDocumentContent = function(data, systemObjectId) {
+    Plugin.__getNewDocumentContent = async function(data, systemObjectId) {
         const nestedPrefix = '_nested:' + this.__getObjectType() + '__';
-        const region = this.__getRegion(data, nestedPrefix);
-        const shortRegion = this.__getRegion(data, nestedPrefix, true);
+        const regionElements = await this.__getRegionElements(data, nestedPrefix);
+        const region = this.__getRegion(regionElements);
+        const shortRegion = this.__getRegion(regionElements, true);
         const cityDistrict = this.__getListValueFromObjectData(
             data, nestedPrefix + 'politische_zugehoerigkeit', 'stadtteil'
         );
@@ -407,17 +408,21 @@ var CustomDataTypeVIS = (function(superClass) {
         };
     };
 
-    Plugin.__getRegion = function(data, nestedPrefix, short = false) {
+    Plugin.__getRegionElements = async function(data, nestedPrefix) {
         const danteConcept = this.__getListValueFromObjectData(
             data, nestedPrefix + 'politische_zugehoerigkeit', 'lk_politische_zugehoerigkeit'
-        )?.conceptName;
-        if (!danteConcept) return undefined;
+        );
 
-        const elements = danteConcept.split(' → ').map(element => {
-            if (element.includes('(') && !element.includes(')')) return element.replace('(', '');
-            if (element.includes(')') && !element.includes('(')) return element.replace(')', '');
-            return element;
-        });
+        if (!danteConcept) return [];
+
+        const url = 'http://api.dante.gbv.de/ancestors?uri=' + danteConcept.conceptURI + '&properties=-';
+        const ancestors = await this.__performGetRequest(url, 'application/json');
+        const conceptName = danteConcept.conceptName.slice(0, danteConcept.conceptName.lastIndexOf(' ('));
+
+        return [conceptName].concat(ancestors.map(ancestor => ancestor.prefLabel.zxx)).reverse();
+    };
+
+    Plugin.__getRegion = function(elements, short = false) {
         if (elements.length < 2 || (short && elements.length < 3)) return undefined;
 
         if (short) {
@@ -469,7 +474,7 @@ var CustomDataTypeVIS = (function(superClass) {
             disabled: !this.__hasAccessRights(),
             onClick: () => this.__createDocumentLink(getInputValue(), systemObjectId, uuid, data, cdata, layoutElement)
         });
-    }
+    };
 
     Plugin.__createDocumentLink = function(searchString, systemObjectId, uuid, data, cdata, layoutElement) {
         searchString = searchString?.toLowerCase().replace('vis-smartclient:', '').trim();
@@ -524,7 +529,7 @@ var CustomDataTypeVIS = (function(superClass) {
             default:
                 return undefined;
         }
-    }
+    };
 
     Plugin.__renderActionsButtonBar = function(data, cdata, systemObjectId, uuid, layoutElement) {
         return new CUI.Buttonbar({
@@ -784,6 +789,21 @@ var CustomDataTypeVIS = (function(superClass) {
         return this.__performPostRequest(url, requestData, 'application/json');
     };
 
+    Plugin.__performGetRequest = function(url) {
+        return fetch(url, {
+            method: 'GET'
+        }).then(response => {
+            if (!response.ok) {
+                console.error(response.status);
+                return undefined;
+            }
+            return response.json();
+        }).catch(err => {
+            console.error(err);
+            return undefined;
+        });
+    };
+
     Plugin.__performPostRequest = function(url, requestData, contentType) {
         return fetch(url, {
             method: 'POST',
@@ -825,7 +845,7 @@ var CustomDataTypeVIS = (function(superClass) {
         if (requestData) formData.append('body', JSON.stringify(requestData));
 
         return formData;
-    }
+    };
 
     Plugin.__getBaseConfiguration = function() {
         return ez5.session.getBaseConfig('plugin', 'custom-data-type-vis')['vis'];
@@ -842,12 +862,12 @@ var CustomDataTypeVIS = (function(superClass) {
         return typeName === 'Akte'
             ? 'akte' + '/' + configuration.file_type_name
             : 'vorgang' + '/' + configuration.process_type_name;
-    }
+    };
 
     Plugin.__hasAccessRights = function() {
         const groupId = this.__getBaseConfiguration().access_user_group_id;
         return !groupId || this.__getUserGroupIds().includes(groupId);
-    }
+    };
 
     Plugin.__hasCreationRights = function(typeName) {
         if (!typeName?.length) return false;
@@ -862,15 +882,15 @@ var CustomDataTypeVIS = (function(superClass) {
 
     Plugin.__getUserGroupIds = function() {
         return ez5.session.user.data.__group_ids;
-    }
+    };
 
     Plugin.__getExternalURL = function() {
         return ez5.session.data.instance.external_url;
-    }
+    };
 
     Plugin.__getTypeId = function(cdata) {
         return cdata.typ === 'Akte' ? 1 : 3;
-    }
+    };
 
     Plugin.__showErrorMessage = function(errorId) {
         const modal = new CUI.Modal({
