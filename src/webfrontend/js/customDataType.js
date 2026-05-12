@@ -428,9 +428,9 @@ var CustomDataTypeVIS = (function(superClass) {
         if (short) {
             return elements[2];
         } else {
-            let result = 'Landkreis ' + elements[1];
-            if (elements.length > 2) result += ', Gemeinde ' + elements[2];
-            if (elements.length > 3) result += ', Gemarkung ' + elements[3];
+            let result = 'Ldkr. ' + elements[1];
+            if (elements.length > 2) result += ', Gde. ' + elements[2];
+            if (elements.length > 3) result += ', Gmkg. ' + elements[3];
 
             return result;
         }
