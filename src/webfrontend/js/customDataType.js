@@ -355,10 +355,11 @@ var CustomDataTypeVIS = (function(superClass) {
         const cityDistrict = this.__getListValueFromObjectData(
             data, nestedPrefix + 'politische_zugehoerigkeit', 'stadtteil'
         );
-        const street = this.__getListValueFromObjectData(data, nestedPrefix + 'anschrift', 'strasse');
-        const buildingNumber = this.__getListValueFromObjectData(data, nestedPrefix + 'anschrift', 'hausnummer');
+        const addressFilter = value => value.lk_adresstyp?.conceptURI === 'http://uri.gbv.de/terminology/nld_address_type/9ee12d18-d708-4ccb-b7fc-8a64b6e3d445';
+        const street = this.__getListValueFromObjectData(data, nestedPrefix + 'anschrift', 'strasse', addressFilter);
+        const buildingNumber = this.__getListValueFromObjectData(data, nestedPrefix + 'anschrift', 'hausnummer', addressFilter);
         const type = data.lk_objekttyp?.conceptName;
-        const title = this.__getListValueFromObjectData(data, nestedPrefix + 'titel', 'titel', true);
+        const title = this.__getListValueFromObjectData(data, nestedPrefix + 'titel', 'titel', undefined, 2);
 
         const fullContentElements = [];
         const shortContentElements = [];
@@ -413,7 +414,7 @@ var CustomDataTypeVIS = (function(superClass) {
             data, nestedPrefix + 'politische_zugehoerigkeit', 'lk_politische_zugehoerigkeit'
         );
 
-        if (!danteConcept) return [];
+        if (!danteConcept?.conceptURI || !danteConcept?.conceptName) return [];
 
         const url = 'http://api.dante.gbv.de/ancestors?uri=' + danteConcept.conceptURI + '&properties=-';
         const ancestors = await this.__performGetRequest(url, 'application/json');
@@ -436,11 +437,12 @@ var CustomDataTypeVIS = (function(superClass) {
         }
     };
 
-    Plugin.__getListValueFromObjectData = function(data, fieldName, subfieldName, allEntries = false) {
-        return data?.[fieldName]?.length
-            ? allEntries
-                ? data[fieldName].map(entry => entry[subfieldName]).join(', ')
-                : data[fieldName][0][subfieldName]
+    Plugin.__getListValueFromObjectData = function(data, fieldName, subfieldName, filterFunction = (_) => _, numberOfEntries = 1) {
+        const entries = filterFunction ? data?.[fieldName]?.filter(filterFunction) : data?.[fieldName];
+        return entries.length
+            ? numberOfEntries > 1
+                ? entries.slice(0, numberOfEntries).map(entry => entry[subfieldName]).join(', ')
+                : entries[0][subfieldName]
             : undefined;
     };
 
