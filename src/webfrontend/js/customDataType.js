@@ -480,20 +480,24 @@ var CustomDataTypeVIS = (function(superClass) {
         });
     };
 
-    Plugin.__createDocumentLink = function(searchString, systemObjectId, uuid, data, cdata, layoutElement, objectTypeLabel) {
+    Plugin.__createDocumentLink = function(searchString, systemObjectId, uuid, data, cdata, layoutElement, objectTypeLabel, ignoreTitle = false) {
         searchString = searchString?.toLowerCase().replace('vis-smartclient:', '').trim();
         if (!searchString?.length) return this.__showErrorMessage('visLinkMissingInput');
 
         const type = this.__getTypeFromSearchString(searchString);
         if (!type) return this.__showErrorMessage('visLinkInvalidFormat');
 
-        const title = this.__getListValueFromObjectData(
-            data, '_nested:' + this.__getObjectType() + '__titel', 'titel', undefined, 2
-        );
+        let title;
+        if (!ignoreTitle) {
+            title = this.__getListValueFromObjectData(
+                data, '_nested:' + this.__getObjectType() + '__titel', 'titel', undefined, 2
+            );
+            if (!title?.length) return this.__showMissingTitleWarning(searchString, systemObjectId, uuid, data, cdata, layoutElement, objectTypeLabel);
+        }
 
         let documentId, visDocument;
 
-        this.__searchDocument(searchString, type).then(documentIds => {
+        return this.__searchDocument(searchString, type).then(documentIds => {
             if (documentIds?.length !== 1) {
                 throw type === 'Akte' ? 'visLinkFileNotFound' : 'visLinkProcessNotFound';
             }
@@ -513,6 +517,32 @@ var CustomDataTypeVIS = (function(superClass) {
             this.__addEntry(entryData, data, cdata, systemObjectId, uuid, layoutElement, objectTypeLabel);
         }).catch(errorId => {
             this.__showErrorMessage(errorId);
+        });
+    };
+
+    Plugin.__showMissingTitleWarning = function(searchString, systemObjectId, uuid, data, cdata, layoutElement, objectTypeLabel) {
+        return new Promise(resolve => {
+            const modalDialog = new CUI.ConfirmationDialog({
+                title: $$('custom.data.type.vis.missingTitle.modal.title'),
+                text: $$('custom.data.type.vis.missingTitle.modal.text'),
+                cancel: false,
+                buttons: [{
+                    text: $$('custom.data.type.vis.cancel'),
+                    onClick: () => {
+                        modalDialog.destroy();
+                        resolve();
+                    }
+                }, {
+                    text: $$('custom.data.type.vis.ok'),
+                    primary: true,
+                    onClick: () => {
+                        modalDialog.destroy();
+                        this.__createDocumentLink(searchString, systemObjectId, uuid, data, cdata, layoutElement, objectTypeLabel, true).then(() => resolve());
+                    }
+                }]
+            });
+            
+            modalDialog.show();
         });
     };
 
@@ -773,9 +803,12 @@ var CustomDataTypeVIS = (function(superClass) {
 
         const url = configuration.api_url + '/vapiui/'
             + configuration.mandate_id + '/addVerknuepfung/akteverknuepfung/' + documentId;
+
+        let name = configuration.link_name_prefix + objectTypeLabel;
+        if (title?.length) name += ', ' + title;
         
         const requestData = {
-            'Name': configuration.link_name_prefix + objectTypeLabel + ', ' + title,
+            'Name': name,
             'URL':  this.__getExternalURL() + '#/detail/' + uuid
         };
         

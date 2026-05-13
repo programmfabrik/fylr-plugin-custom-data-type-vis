@@ -17,6 +17,8 @@ custom.data.type.vis.cancel,Abbrechen,Cancel
 custom.data.type.vis.creationNotPossible,"Bitte speichern Sie das Objekt, bevor Sie Akten oder Vorgänge verknüpfen.",Please save the object before linking files or processes.
 custom.data.type.vis.emptyFields.modal.title,Unvollständige Angaben,Incomplete data
 custom.data.type.vis.emptyFields.modal.text,"Bitte beachten Sie, dass nicht alle Felder, die für die Generierung des Akteninhalts benötigt werden, ausgefüllt wurden. Der Akteninhalt kann daher unvollständig sein. Nicht ausgefüllte Felder:","Please note that not all fields needed to generate the file content have been filled in. The file content may therefore be incomplete. Fields that have not been filled in:"
+custom.data.type.vis.missingTitle.modal.title,Fehlende Objektbezeichnung,Missing title
+custom.data.type.vis.missingTitle.modal.text,"Bitte beachten Sie, dass keine Objektbezeichnung eingetragen wurde. Der Name der Verknüpfung kann daher unvollständig sein.","Please note that no title has been entered. The link name may therefore be incomplete."
 custom.data.type.vis.error.visCreationUpdateFailure.title,Aktenerstellung fehlgeschlagen,Could not create document
 custom.data.type.vis.error.visCreationUpdateFailure.message,Die Akte konnte in VIS nicht angelegt werden.,The document could not be created in VIS.
 custom.data.type.vis.error.visCreationReadNewDocumentFailure.title,Aktenerstellung fehlgeschlagen,Could not create document
