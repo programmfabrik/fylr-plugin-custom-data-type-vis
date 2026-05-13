@@ -322,7 +322,7 @@ var CustomDataTypeVIS = (function(superClass) {
     };
 
     Plugin.__showEmptyFieldsWarning = function(type, data, cdata, systemObjectId, uuid, layoutElement, fullContent, shortContent, emptyFields) {
-        return new Promise((resolve, reject) => {
+        return new Promise(resolve => {
             const modalDialog = new CUI.ConfirmationDialog({
                 title: $$('custom.data.type.vis.emptyFields.modal.title'),
                 text: $$('custom.data.type.vis.emptyFields.modal.text') + ' ' + emptyFields.join(', '),
@@ -331,7 +331,7 @@ var CustomDataTypeVIS = (function(superClass) {
                     text: $$('custom.data.type.vis.cancel'),
                     onClick: () => {
                         modalDialog.destroy();
-                        reject();
+                        resolve();
                     }
                 }, {
                     text: $$('custom.data.type.vis.ok'),
