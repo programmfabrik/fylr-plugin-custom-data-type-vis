@@ -171,6 +171,7 @@ var CustomDataTypeVIS = (function(superClass) {
         const cdata = this.initData(data);
         const systemObjectId = opts.top_level_data._system_object_id;
         const uuid = opts.top_level_data._uuid;
+        const objectTypeLabel = opts.top_level_data._objecttype_display_name['de-DE'];
 
         const layoutElement = new CUI.HorizontalLayout({
             class: 'customPluginEditorLayout vis-plugin-layout',
@@ -179,18 +180,18 @@ var CustomDataTypeVIS = (function(superClass) {
             right: {}
         });
 
-        this.__updateEditorInput(topLevelData, cdata, systemObjectId, uuid, layoutElement);
+        this.__updateEditorInput(topLevelData, cdata, systemObjectId, uuid, layoutElement, objectTypeLabel);
 
         return layoutElement;
     };
 
-    Plugin.__updateEditorInput = function(data, cdata, systemObjectId, uuid, layoutElement) {
+    Plugin.__updateEditorInput = function(data, cdata, systemObjectId, uuid, layoutElement, objectTypeLabel) {
         if (!systemObjectId || !uuid) {
             this.__updateEditorInputForNewObject(layoutElement);
         } else if (this.__isValidData(cdata)) {
-            this.__updateEditorInputForFilledField(data, cdata, systemObjectId, uuid, layoutElement);
+            this.__updateEditorInputForFilledField(data, cdata, systemObjectId, uuid, layoutElement, objectTypeLabel);
         } else {
-            this.__updateEditorInputForEmptyField(data, cdata, systemObjectId, uuid, layoutElement);
+            this.__updateEditorInputForEmptyField(data, cdata, systemObjectId, uuid, layoutElement, objectTypeLabel);
         }
     };
 
@@ -200,23 +201,23 @@ var CustomDataTypeVIS = (function(superClass) {
         layoutElement.replace(undefined, 'right');
     };
 
-    Plugin.__updateEditorInputForFilledField = function(data, cdata, systemObjectId, uuid, layoutElement) {
+    Plugin.__updateEditorInputForFilledField = function(data, cdata, systemObjectId, uuid, layoutElement, objectTypeLabel) {
         layoutElement.replace(undefined, 'left');
         layoutElement.replace(this.__renderDocumentInfo(cdata), 'center');
-        layoutElement.replace(this.__renderActionsButtonBar(data, cdata, systemObjectId, uuid, layoutElement), 'right');
+        layoutElement.replace(this.__renderActionsButtonBar(data, cdata, systemObjectId, uuid, layoutElement, objectTypeLabel), 'right');
     };
 
-    Plugin.__updateEditorInputForEmptyField = function(data, cdata, systemObjectId, uuid, layoutElement) {
+    Plugin.__updateEditorInputForEmptyField = function(data, cdata, systemObjectId, uuid, layoutElement, objectTypeLabel) {
         let inputElement;
 
         const getInputValue = function() {
             return inputElement.getValueForInput();
         }
 
-        const linkButtonElement = this.__getLinkButton(data, cdata, systemObjectId, uuid, layoutElement, getInputValue);
+        const linkButtonElement = this.__getLinkButton(data, cdata, systemObjectId, uuid, layoutElement, objectTypeLabel, getInputValue);
         inputElement = this.__renderInputField(linkButtonElement);
 
-        layoutElement.replace(this.__getCreateDocumentButton(data, cdata, systemObjectId, uuid, layoutElement), 'left');
+        layoutElement.replace(this.__getCreateDocumentButton(data, cdata, systemObjectId, uuid, layoutElement, objectTypeLabel), 'left');
         layoutElement.replace(inputElement, 'center');
         layoutElement.replace(linkButtonElement, 'right');
     };
@@ -228,7 +229,7 @@ var CustomDataTypeVIS = (function(superClass) {
         });
     };
 
-    Plugin.__getCreateDocumentButton = function(data, cdata, systemObjectId, uuid, layoutElement) {
+    Plugin.__getCreateDocumentButton = function(data, cdata, systemObjectId, uuid, layoutElement, objectTypeLabel) {
         const types = this.__getCreatableTypes();
         
         return new CUI.Button({
@@ -236,11 +237,11 @@ var CustomDataTypeVIS = (function(superClass) {
             icon: new CUI.Icon({ class: 'fa-plus' }),
             class: 'pluginDirectSelectEditSearchFylr create-document-button',
             disabled: !this.__hasAccessRights() || !types.length || !systemObjectId || !uuid,
-            onClick: () => this.__openCreateDocumentModal(data, cdata, systemObjectId, uuid, layoutElement, types)
+            onClick: () => this.__openCreateDocumentModal(data, cdata, systemObjectId, uuid, layoutElement, objectTypeLabel, types)
         });
     };
 
-    Plugin.__openCreateDocumentModal = function(data, cdata, systemObjectId, uuid, layoutElement, types) {
+    Plugin.__openCreateDocumentModal = function(data, cdata, systemObjectId, uuid, layoutElement, objectTypeLabel, types) {
         const inputData = { type: types[0].id };
 
         const modal = new CUI.Modal({
@@ -263,7 +264,7 @@ var CustomDataTypeVIS = (function(superClass) {
                             this.__closeModal(modal);
 
                             const creationInProgressModal = this.__openCreationInProgressModal();
-                            this.__startDocumentCreation(selectedType, data, cdata, systemObjectId, uuid, layoutElement).finally(() => {
+                            this.__startDocumentCreation(selectedType, data, cdata, systemObjectId, uuid, layoutElement, objectTypeLabel).finally(() => {
                                 this.__closeModal(creationInProgressModal);
                             });
                         }
@@ -305,23 +306,23 @@ var CustomDataTypeVIS = (function(superClass) {
         return modal.show();   
     };
 
-    Plugin.__startDocumentCreation = async function(type, data, cdata, systemObjectId, uuid, layoutElement) {
-        const { fullContent, shortContent, emptyFields } = await this.__getNewDocumentContent(data, systemObjectId);
+    Plugin.__startDocumentCreation = async function(type, data, cdata, systemObjectId, uuid, layoutElement, objectTypeLabel) {
+        const { fullContent, shortContent, title, emptyFields } = await this.__getNewDocumentContent(data, systemObjectId);
         if (emptyFields.length) {
-            return this.__showEmptyFieldsWarning(type, data, cdata, systemObjectId, uuid, layoutElement, fullContent, shortContent, emptyFields);
+            return this.__showEmptyFieldsWarning(type, data, cdata, systemObjectId, uuid, layoutElement, fullContent, shortContent, objectTypeLabel, title, emptyFields);
         } else {
-            return this.__addNewDocument(type, data, cdata, systemObjectId, uuid, layoutElement, fullContent, shortContent);
+            return this.__addNewDocument(type, data, cdata, systemObjectId, uuid, layoutElement, fullContent, shortContent, objectTypeLabel, title);
         }
     };
 
-    Plugin.__addNewDocument = function(type, data, cdata, systemObjectId, uuid, layoutElement, fullContent, shortContent) {
-        return this.__createDocument(type, systemObjectId, uuid, fullContent, shortContent)
+    Plugin.__addNewDocument = function(type, data, cdata, systemObjectId, uuid, layoutElement, fullContent, shortContent, objectTypeLabel, title) {
+        return this.__createDocument(type, uuid, fullContent, shortContent, objectTypeLabel, title)
             .then(result => {
-                if (result) this.__addEntry(result, data, cdata, systemObjectId, uuid, layoutElement);
+                if (result) this.__addEntry(result, data, cdata, systemObjectId, uuid, layoutElement, objectTypeLabel);
             });
     };
 
-    Plugin.__showEmptyFieldsWarning = function(type, data, cdata, systemObjectId, uuid, layoutElement, fullContent, shortContent, emptyFields) {
+    Plugin.__showEmptyFieldsWarning = function(type, data, cdata, systemObjectId, uuid, layoutElement, fullContent, shortContent, objectTypeLabel, title, emptyFields) {
         return new Promise(resolve => {
             const modalDialog = new CUI.ConfirmationDialog({
                 title: $$('custom.data.type.vis.emptyFields.modal.title'),
@@ -338,7 +339,7 @@ var CustomDataTypeVIS = (function(superClass) {
                     primary: true,
                     onClick: () => {
                         modalDialog.destroy();
-                        this.__addNewDocument(type, data, cdata, systemObjectId, uuid, layoutElement, fullContent, shortContent).then(() => resolve());
+                        this.__addNewDocument(type, data, cdata, systemObjectId, uuid, layoutElement, fullContent, shortContent, objectTypeLabel, title).then(() => resolve());
                     }
                 }]
             });
@@ -405,6 +406,7 @@ var CustomDataTypeVIS = (function(superClass) {
         return {
             fullContent: fullContentElements.join(', '),
             shortContent: shortContentElements.join(', ').slice(0, 50),
+            title,
             emptyFields
         };
     };
@@ -468,22 +470,26 @@ var CustomDataTypeVIS = (function(superClass) {
         }).start();
     };
 
-    Plugin.__getLinkButton = function(data, cdata, systemObjectId, uuid, layoutElement, getInputValue) {
+    Plugin.__getLinkButton = function(data, cdata, systemObjectId, uuid, layoutElement, objectTypeLabel, getInputValue) {
         return new CUI.Button({
             text: '',
             icon: new CUI.Icon({ class: 'fa-link' }),
             class: 'pluginDirectSelectEditSearchFylr link-document-button',
             disabled: !this.__hasAccessRights(),
-            onClick: () => this.__createDocumentLink(getInputValue(), systemObjectId, uuid, data, cdata, layoutElement)
+            onClick: () => this.__createDocumentLink(getInputValue(), systemObjectId, uuid, data, cdata, layoutElement, objectTypeLabel)
         });
     };
 
-    Plugin.__createDocumentLink = function(searchString, systemObjectId, uuid, data, cdata, layoutElement) {
+    Plugin.__createDocumentLink = function(searchString, systemObjectId, uuid, data, cdata, layoutElement, objectTypeLabel) {
         searchString = searchString?.toLowerCase().replace('vis-smartclient:', '').trim();
         if (!searchString?.length) return this.__showErrorMessage('visLinkMissingInput');
 
         const type = this.__getTypeFromSearchString(searchString);
         if (!type) return this.__showErrorMessage('visLinkInvalidFormat');
+
+        const title = this.__getListValueFromObjectData(
+            data, '_nested:' + this.__getObjectType() + '__titel', 'titel', undefined, 2
+        );
 
         let documentId, visDocument;
 
@@ -495,7 +501,7 @@ var CustomDataTypeVIS = (function(superClass) {
             return this.__getVISDocument(documentId, type);
         }).then(result => {
             visDocument = result;
-            return this.__linkDocumentToObject(documentId, systemObjectId, uuid);
+            return this.__linkDocumentToObject(documentId, uuid, objectTypeLabel, title);
         }).then(result => {
             if (!result) throw type === 'Akte' ? 'visLinkCreateLinkFailureFile' : 'visLinkCreateLinkFailureProcess';
             const entryData = {
@@ -504,7 +510,7 @@ var CustomDataTypeVIS = (function(superClass) {
                 typ: type,
                 subtyp: this.__getSubtype(visDocument)
             };
-            this.__addEntry(entryData, data, cdata, systemObjectId, uuid, layoutElement);
+            this.__addEntry(entryData, data, cdata, systemObjectId, uuid, layoutElement, objectTypeLabel);
         }).catch(errorId => {
             this.__showErrorMessage(errorId);
         });
@@ -533,13 +539,13 @@ var CustomDataTypeVIS = (function(superClass) {
         }
     };
 
-    Plugin.__renderActionsButtonBar = function(data, cdata, systemObjectId, uuid, layoutElement) {
+    Plugin.__renderActionsButtonBar = function(data, cdata, systemObjectId, uuid, layoutElement, objectTypeLabel) {
         return new CUI.Buttonbar({
-            buttons: [this.__renderActionsButton(data, cdata, systemObjectId, uuid, layoutElement)]
+            buttons: [this.__renderActionsButton(data, cdata, systemObjectId, uuid, layoutElement, objectTypeLabel)]
         });
     };
 
-    Plugin.__renderActionsButton = function(data, cdata, systemObjectId, uuid, layoutElement) {
+    Plugin.__renderActionsButton = function(data, cdata, systemObjectId, uuid, layoutElement, objectTypeLabel) {
         const menuButtonElement = new CUI.Button({
             text: '',
             icon: new CUI.Icon({ class: 'fa-ellipsis-v' }),
@@ -547,28 +553,28 @@ var CustomDataTypeVIS = (function(superClass) {
             onClick: () => this.__openActionsMenu(cdata, menuElement)
         });
 
-        const menuElement = this.__getActionsMenu(data, cdata, systemObjectId, uuid, menuButtonElement, layoutElement);
+        const menuElement = this.__getActionsMenu(data, cdata, systemObjectId, uuid, menuButtonElement, layoutElement, objectTypeLabel);
 
         return menuButtonElement;
     };
 
-    Plugin.__getActionsMenu = function(data, cdata, systemObjectId, uuid, menuButtonElement, layoutElement) {
+    Plugin.__getActionsMenu = function(data, cdata, systemObjectId, uuid, menuButtonElement, layoutElement, objectTypeLabel) {
         const menuElement = new CUI.Menu({
             class: 'customDataTypeCommonsMenu',
             element: menuButtonElement
         });
 
         menuElement._auto_close_after_click = false;
-        menuElement.setItemList(this.__getActionsMenuItemList(data, cdata, systemObjectId, uuid, menuElement, layoutElement));
+        menuElement.setItemList(this.__getActionsMenuItemList(data, cdata, systemObjectId, uuid, menuElement, layoutElement, objectTypeLabel));
         return menuElement;
     };
 
-    Plugin.__getActionsMenuItemList = function(data, cdata, systemObjectId, uuid, menuElement, layoutElement) {
+    Plugin.__getActionsMenuItemList = function(data, cdata, systemObjectId, uuid, menuElement, layoutElement, objectTypeLabel) {
         return {
             items: [
                 this.__getDetailInfoButton(cdata, menuElement),
                 this.__getEditButton(cdata),
-                this.__getDeleteButton(data, cdata, systemObjectId, uuid, menuElement, layoutElement)
+                this.__getDeleteButton(data, cdata, systemObjectId, uuid, menuElement, layoutElement, objectTypeLabel)
             ]
         };
     };
@@ -647,7 +653,7 @@ var CustomDataTypeVIS = (function(superClass) {
         };
     };
 
-    Plugin.__getDeleteButton = function(data, cdata, systemObjectId, uuid, menuElement, layoutElement) {
+    Plugin.__getDeleteButton = function(data, cdata, systemObjectId, uuid, menuElement, layoutElement, objectTypeLabel) {
         return {
             text: $$('custom.data.type.vis.buttonMenu.delete'),
             value: 'delete',
@@ -655,12 +661,12 @@ var CustomDataTypeVIS = (function(superClass) {
             onClick: () => {
                 this.__deleteEntry(cdata, layoutElement);
                 menuElement.hide();
-                this.__updateEditorInput(data, cdata, systemObjectId, uuid, layoutElement);
+                this.__updateEditorInput(data, cdata, systemObjectId, uuid, layoutElement, objectTypeLabel);
             }
         };
     };
 
-    Plugin.__addEntry = function(entryData, data, cdata, systemObjectId, uuid, layoutElement) {
+    Plugin.__addEntry = function(entryData, data, cdata, systemObjectId, uuid, layoutElement, objectTypeLabel) {
         cdata.objektid = entryData.objektid;
         cdata.zeichen = entryData.zeichen;
         cdata.typ = entryData.typ;
@@ -668,7 +674,7 @@ var CustomDataTypeVIS = (function(superClass) {
         cdata._fulltext = { text: entryData.zeichen };
         cdata._standard = { text: entryData.zeichen };
 
-        this.__updateEditorInput(data, cdata, systemObjectId, uuid, layoutElement);
+        this.__updateEditorInput(data, cdata, systemObjectId, uuid, layoutElement, objectTypeLabel);
         this.__notifyEditor(layoutElement);
     };
 
@@ -703,7 +709,7 @@ var CustomDataTypeVIS = (function(superClass) {
         return 'VIS-SmartClient: ' + cdata.zeichen + ' (' + (cdata.subtyp ?? cdata.typ) + ')';
     };
 
-    Plugin.__createDocument = function(type, systemObjectId, uuid, fullContent, shortContent) {
+    Plugin.__createDocument = function(type, uuid, fullContent, shortContent, objectTypeLabel, title) {
         const newDocumentData = { typ: 'Akte', subtyp: type.name };
 
         return this.__addVISDocument(type, fullContent, shortContent)
@@ -714,7 +720,7 @@ var CustomDataTypeVIS = (function(superClass) {
             }).then(newDocument => {
                 if (!newDocument) throw 'visCreationReadNewDocumentFailure';
                 newDocumentData.zeichen = newDocument.aktenzeichen;
-                return this.__linkDocumentToObject(newDocumentData.objektid, systemObjectId, uuid);
+                return this.__linkDocumentToObject(newDocumentData.objektid, uuid, objectTypeLabel, title);
             }).then(result => {
                 if (!result) throw 'visCreationCreateLinkFailure';
                 return newDocumentData;
@@ -762,14 +768,14 @@ var CustomDataTypeVIS = (function(superClass) {
         return this.__performMultiPartPostRequest(url, requestData);
     };
 
-    Plugin.__linkDocumentToObject = function(documentId, systemObjectId, uuid) {
+    Plugin.__linkDocumentToObject = function(documentId, uuid, objectTypeLabel, title) {
         const configuration = this.__getBaseConfiguration();
 
         const url = configuration.api_url + '/vapiui/'
             + configuration.mandate_id + '/addVerknuepfung/akteverknuepfung/' + documentId;
         
         const requestData = {
-            'Name': configuration.link_name_prefix + systemObjectId,
+            'Name': configuration.link_name_prefix + objectTypeLabel + ', ' + title,
             'URL':  this.__getExternalURL() + '#/detail/' + uuid
         };
         
