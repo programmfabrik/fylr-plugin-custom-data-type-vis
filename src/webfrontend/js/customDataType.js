@@ -418,7 +418,7 @@ var CustomDataTypeVIS = (function(superClass) {
 
         if (!danteConcept?.conceptURI || !danteConcept?.conceptName) return [];
 
-        const url = 'http://api.dante.gbv.de/ancestors?uri=' + danteConcept.conceptURI + '&properties=-';
+        const url = 'https://api.dante.gbv.de/ancestors?uri=' + danteConcept.conceptURI + '&properties=-';
         const ancestors = await this.__performGetRequest(url, 'application/json');
         const conceptName = danteConcept.conceptName.slice(0, danteConcept.conceptName.lastIndexOf(' ('));
 
