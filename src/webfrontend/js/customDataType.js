@@ -418,11 +418,19 @@ var CustomDataTypeVIS = (function(superClass) {
 
         if (!danteConcept?.conceptURI || !danteConcept?.conceptName) return [];
 
-        const url = 'https://api.dante.gbv.de/ancestors?uri=' + danteConcept.conceptURI + '&properties=-';
-        const ancestors = await this.__performGetRequest(url, 'application/json');
-        const conceptName = danteConcept.conceptName.slice(0, danteConcept.conceptName.lastIndexOf(' ('));
+        const concept = await this.__performGetRequest(
+            'https://api.dante.gbv.de/data?uri=' + danteConcept.conceptURI + '&properties=-',
+            'application/json'
+        );
 
-        return [conceptName].concat(ancestors.map(ancestor => ancestor.prefLabel.zxx)).reverse();
+        const ancestors = await this.__performGetRequest(
+            'https://api.dante.gbv.de/ancestors?uri=' + danteConcept.conceptURI + '&properties=-',
+            'application/json'
+        );
+
+        return concept.concat(ancestors)
+            .map(ancestor => ancestor.prefLabel.de ?? ancestor.prefLabel.zxx)
+            .reverse();
     };
 
     Plugin.__getRegion = function(elements, short = false) {
