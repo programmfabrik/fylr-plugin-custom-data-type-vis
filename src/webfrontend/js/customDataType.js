@@ -359,6 +359,7 @@ var CustomDataTypeVIS = (function(superClass) {
         const addressFilter = value => value.lk_adresstyp?.conceptURI === 'http://uri.gbv.de/terminology/nld_address_type/9ee12d18-d708-4ccb-b7fc-8a64b6e3d445';
         const street = this.__getListValueFromObjectData(data, nestedPrefix + 'anschrift', 'strasse', addressFilter);
         const buildingNumber = this.__getListValueFromObjectData(data, nestedPrefix + 'anschrift', 'hausnummer', addressFilter);
+        const buildingNumberSuffix = this.__getListValueFromObjectData(data, nestedPrefix + 'anschrift', 'hausnummer_zusatz', addressFilter);
         const type = data.lk_objekttyp?.conceptName;
         const title = this.__getListValueFromObjectData(data, nestedPrefix + 'titel', 'titel', undefined, 2);
 
@@ -382,12 +383,15 @@ var CustomDataTypeVIS = (function(superClass) {
             emptyFields.push('Stadtteil / Lagebezeichnung');
         }
 
-        if (street && buildingNumber) {
-            fullContentElements.push(street + ' ' + buildingNumber);
-            shortContentElements.push(street + ' ' + buildingNumber);
+        if (street && (buildingNumber || buildingNumberSuffix)) {
+            let address = street + ' ';
+            if (buildingNumber) address += buildingNumber;
+            if (buildingNumberSuffix) address += buildingNumberSuffix;
+            fullContentElements.push(address);
+            shortContentElements.push(address);
         } else {
             if (!street) emptyFields.push('Straße');
-            if (!buildingNumber) emptyFields.push('Hausnummer');
+            if (!buildingNumber && !buildingNumberSuffix) emptyFields.push('Hausnummer oder Hausnummernzusatz');
         }
 
         if (type) {
