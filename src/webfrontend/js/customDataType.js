@@ -171,7 +171,7 @@ var CustomDataTypeVIS = (function(superClass) {
         const cdata = this.initData(data);
         const systemObjectId = opts.top_level_data._system_object_id;
         const uuid = opts.top_level_data._uuid;
-        const objectTypeLabel = opts.top_level_data._objecttype_display_name['de-DE'];
+        const objectTypeLabel = opts.top_level_data._objecttype_display_name?.['de-DE'];
 
         const layoutElement = new CUI.HorizontalLayout({
             class: 'customPluginEditorLayout vis-plugin-layout',
@@ -186,7 +186,7 @@ var CustomDataTypeVIS = (function(superClass) {
     };
 
     Plugin.__updateEditorInput = function(data, cdata, systemObjectId, uuid, layoutElement, objectTypeLabel) {
-        if (!systemObjectId || !uuid) {
+        if (!systemObjectId || !uuid || !objectTypeLabel) {
             this.__updateEditorInputForNewObject(layoutElement);
         } else if (this.__isValidData(cdata)) {
             this.__updateEditorInputForFilledField(data, cdata, systemObjectId, uuid, layoutElement, objectTypeLabel);
