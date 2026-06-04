@@ -307,22 +307,22 @@ var CustomDataTypeVIS = (function(superClass) {
     };
 
     Plugin.__startDocumentCreation = async function(type, data, cdata, systemObjectId, uuid, layoutElement, objectTypeLabel) {
-        const { fullContent, shortContent, title, emptyFields } = await this.__getNewDocumentContent(data, systemObjectId);
+        const { fullContent, shortContent, title, objectTypeConceptName, emptyFields } = await this.__getNewDocumentContent(data, systemObjectId);
         if (emptyFields.length) {
-            return this.__showEmptyFieldsWarning(type, data, cdata, systemObjectId, uuid, layoutElement, fullContent, shortContent, objectTypeLabel, title, emptyFields);
+            return this.__showEmptyFieldsWarning(type, data, cdata, systemObjectId, uuid, layoutElement, fullContent, shortContent, objectTypeLabel, title, objectTypeConceptName, emptyFields);
         } else {
-            return this.__addNewDocument(type, data, cdata, systemObjectId, uuid, layoutElement, fullContent, shortContent, objectTypeLabel, title);
+            return this.__addNewDocument(type, data, cdata, systemObjectId, uuid, layoutElement, fullContent, shortContent, objectTypeLabel, title, objectTypeConceptName);
         }
     };
 
-    Plugin.__addNewDocument = function(type, data, cdata, systemObjectId, uuid, layoutElement, fullContent, shortContent, objectTypeLabel, title) {
-        return this.__createDocument(type, uuid, fullContent, shortContent, objectTypeLabel, title)
+    Plugin.__addNewDocument = function(type, data, cdata, systemObjectId, uuid, layoutElement, fullContent, shortContent, objectTypeLabel, title, objectTypeConceptName) {
+        return this.__createDocument(type, systemObjectId, uuid, fullContent, shortContent, objectTypeLabel, title, objectTypeConceptName)
             .then(result => {
                 if (result) this.__addEntry(result, data, cdata, systemObjectId, uuid, layoutElement, objectTypeLabel);
             });
     };
 
-    Plugin.__showEmptyFieldsWarning = function(type, data, cdata, systemObjectId, uuid, layoutElement, fullContent, shortContent, objectTypeLabel, title, emptyFields) {
+    Plugin.__showEmptyFieldsWarning = function(type, data, cdata, systemObjectId, uuid, layoutElement, fullContent, shortContent, objectTypeLabel, title, objectTypeConceptName, emptyFields) {
         return new Promise(resolve => {
             const modalDialog = new CUI.ConfirmationDialog({
                 title: $$('custom.data.type.vis.emptyFields.modal.title'),
@@ -339,7 +339,7 @@ var CustomDataTypeVIS = (function(superClass) {
                     primary: true,
                     onClick: () => {
                         modalDialog.destroy();
-                        this.__addNewDocument(type, data, cdata, systemObjectId, uuid, layoutElement, fullContent, shortContent, objectTypeLabel, title).then(() => resolve());
+                        this.__addNewDocument(type, data, cdata, systemObjectId, uuid, layoutElement, fullContent, shortContent, objectTypeLabel, title, objectTypeConceptName).then(() => resolve());
                     }
                 }]
             });
@@ -411,6 +411,7 @@ var CustomDataTypeVIS = (function(superClass) {
             fullContent: fullContentElements.join(', '),
             shortContent: shortContentElements.join(', ').slice(0, 50),
             title,
+            objectTypeConceptName: type,
             emptyFields
         };
     };
@@ -452,8 +453,8 @@ var CustomDataTypeVIS = (function(superClass) {
     };
 
     Plugin.__getListValueFromObjectData = function(data, fieldName, subfieldName, filterFunction = (_) => _, numberOfEntries = 1) {
-        const entries = filterFunction ? data?.[fieldName]?.filter(filterFunction) : data?.[fieldName];
-        return entries.length
+        const entries = data?.[fieldName]?.filter(filterFunction);
+        return entries?.length
             ? numberOfEntries > 1
                 ? entries.slice(0, numberOfEntries).map(entry => entry[subfieldName]).join(', ')
                 : entries[0][subfieldName]
@@ -517,7 +518,7 @@ var CustomDataTypeVIS = (function(superClass) {
             return this.__getVISDocument(documentId, type);
         }).then(result => {
             visDocument = result;
-            return this.__linkDocumentToObject(documentId, uuid, objectTypeLabel, title);
+            return this.__linkDocumentToObject(documentId, systemObjectId, uuid, objectTypeLabel, title, data.lk_objekttyp?.conceptName);
         }).then(result => {
             if (!result) throw type === 'Akte' ? 'visLinkCreateLinkFailureFile' : 'visLinkCreateLinkFailureProcess';
             const entryData = {
@@ -751,7 +752,7 @@ var CustomDataTypeVIS = (function(superClass) {
         return 'VIS-SmartClient: ' + cdata.zeichen + ' (' + (cdata.subtyp ?? cdata.typ) + ')';
     };
 
-    Plugin.__createDocument = function(type, uuid, fullContent, shortContent, objectTypeLabel, title) {
+    Plugin.__createDocument = function(type, systemObjectId, uuid, fullContent, shortContent, objectTypeLabel, title, objectTypeConceptName) {
         const newDocumentData = { typ: 'Akte', subtyp: type.name };
 
         return this.__addVISDocument(type, fullContent, shortContent)
@@ -762,7 +763,7 @@ var CustomDataTypeVIS = (function(superClass) {
             }).then(newDocument => {
                 if (!newDocument) throw 'visCreationReadNewDocumentFailure';
                 newDocumentData.zeichen = newDocument.aktenzeichen;
-                return this.__linkDocumentToObject(newDocumentData.objektid, uuid, objectTypeLabel, title);
+                return this.__linkDocumentToObject(newDocumentData.objektid, systemObjectId, uuid, objectTypeLabel, title, objectTypeConceptName);
             }).then(result => {
                 if (!result) throw 'visCreationCreateLinkFailure';
                 return newDocumentData;
@@ -810,14 +811,18 @@ var CustomDataTypeVIS = (function(superClass) {
         return this.__performMultiPartPostRequest(url, requestData);
     };
 
-    Plugin.__linkDocumentToObject = function(documentId, uuid, objectTypeLabel, title) {
+    Plugin.__linkDocumentToObject = function(documentId, systemObjectId, uuid, objectTypeLabel, title, objectTypeConceptName) {
         const configuration = this.__getBaseConfiguration();
 
         const url = configuration.api_url + '/vapiui/'
             + configuration.mandate_id + '/addVerknuepfung/akteverknuepfung/' + documentId;
 
-        let name = configuration.link_name_prefix + objectTypeLabel;
-        if (title?.length) name += ', ' + title;
+        let name = configuration.link_name_prefix + (objectTypeConceptName ?? objectTypeLabel);
+        if (title?.length) {
+            name += ', ' + title;
+        } else {
+            name += ', #' + systemObjectId;
+        }
         
         const requestData = {
             'Name': name,
