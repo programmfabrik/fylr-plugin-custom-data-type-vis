@@ -1,6 +1,6 @@
 plugin:
   name: custom-data-type-vis
-  version: 1.0
+  version: 1.1
   url: https://github.com/programmfabrik/fylr-plugin-custom-data-type-vis
   displayname:
     de-DE: VIS
