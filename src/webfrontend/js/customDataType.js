@@ -826,7 +826,7 @@ var CustomDataTypeVIS = (function(superClass) {
         
         const requestData = {
             'Name': name,
-            'URL':  this.__getExternalURL() + '#/detail/' + uuid
+            'URL':  this.__getExternalURL() + '/#/detail/' + uuid
         };
         
         return this.__performMultiPartPostRequest(url, requestData, false);
