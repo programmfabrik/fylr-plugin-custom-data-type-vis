@@ -307,22 +307,22 @@ var CustomDataTypeVIS = (function(superClass) {
     };
 
     Plugin.__startDocumentCreation = async function(type, data, cdata, systemObjectId, uuid, layoutElement, objectTypeLabel) {
-        const { fullContent, shortContent, title, objectTypeConceptName, emptyFields } = await this.__getNewDocumentContent(data, systemObjectId);
+        const { fullContent, shortContent, title, objectTypeConceptLabel, emptyFields } = await this.__getNewDocumentContent(data, systemObjectId);
         if (emptyFields.length) {
-            return this.__showEmptyFieldsWarning(type, data, cdata, systemObjectId, uuid, layoutElement, fullContent, shortContent, objectTypeLabel, title, objectTypeConceptName, emptyFields);
+            return this.__showEmptyFieldsWarning(type, data, cdata, systemObjectId, uuid, layoutElement, fullContent, shortContent, objectTypeLabel, objectTypeConceptLabel, title, emptyFields);
         } else {
-            return this.__addNewDocument(type, data, cdata, systemObjectId, uuid, layoutElement, fullContent, shortContent, objectTypeLabel, title, objectTypeConceptName);
+            return this.__addNewDocument(type, data, cdata, systemObjectId, uuid, layoutElement, fullContent, shortContent, objectTypeLabel, objectTypeConceptLabel, title);
         }
     };
 
-    Plugin.__addNewDocument = function(type, data, cdata, systemObjectId, uuid, layoutElement, fullContent, shortContent, objectTypeLabel, title, objectTypeConceptName) {
-        return this.__createDocument(type, systemObjectId, uuid, fullContent, shortContent, objectTypeLabel, title, objectTypeConceptName)
+    Plugin.__addNewDocument = function(type, data, cdata, systemObjectId, uuid, layoutElement, fullContent, shortContent, objectTypeLabel, objectTypeConceptLabel, title) {
+        return this.__createDocument(type, systemObjectId, uuid, fullContent, shortContent, objectTypeLabel, objectTypeConceptLabel, title)
             .then(result => {
                 if (result) this.__addEntry(result, data, cdata, systemObjectId, uuid, layoutElement, objectTypeLabel);
             });
     };
 
-    Plugin.__showEmptyFieldsWarning = function(type, data, cdata, systemObjectId, uuid, layoutElement, fullContent, shortContent, objectTypeLabel, title, objectTypeConceptName, emptyFields) {
+    Plugin.__showEmptyFieldsWarning = function(type, data, cdata, systemObjectId, uuid, layoutElement, fullContent, shortContent, objectTypeLabel, objectTypeConceptLabel, title, emptyFields) {
         return new Promise(resolve => {
             const modalDialog = new CUI.ConfirmationDialog({
                 title: $$('custom.data.type.vis.emptyFields.modal.title'),
@@ -339,7 +339,7 @@ var CustomDataTypeVIS = (function(superClass) {
                     primary: true,
                     onClick: () => {
                         modalDialog.destroy();
-                        this.__addNewDocument(type, data, cdata, systemObjectId, uuid, layoutElement, fullContent, shortContent, objectTypeLabel, title, objectTypeConceptName).then(() => resolve());
+                        this.__addNewDocument(type, data, cdata, systemObjectId, uuid, layoutElement, fullContent, shortContent, objectTypeLabel, objectTypeConceptLabel, title).then(() => resolve());
                     }
                 }]
             });
@@ -360,7 +360,7 @@ var CustomDataTypeVIS = (function(superClass) {
         const street = this.__getListValueFromObjectData(data, nestedPrefix + 'anschrift', 'strasse', addressFilter);
         const buildingNumber = this.__getListValueFromObjectData(data, nestedPrefix + 'anschrift', 'hausnummer', addressFilter);
         const buildingNumberSuffix = this.__getListValueFromObjectData(data, nestedPrefix + 'anschrift', 'hausnummer_zusatz', addressFilter);
-        const type = data.lk_objekttyp?.conceptName;
+        const objectTypeConceptLabel = await this.__getObjectTypeConceptLabel(data);
         const title = this.__getListValueFromObjectData(data, nestedPrefix + 'titel', 'titel', undefined, 2);
 
         const fullContentElements = [];
@@ -394,9 +394,9 @@ var CustomDataTypeVIS = (function(superClass) {
             if (!buildingNumber && !buildingNumberSuffix) emptyFields.push('Hausnummer oder Hausnummernzusatz');
         }
 
-        if (type) {
-            fullContentElements.push(type);
-            shortContentElements.push(type);
+        if (objectTypeConceptLabel) {
+            fullContentElements.push(objectTypeConceptLabel);
+            shortContentElements.push(objectTypeConceptLabel);
          } else {
             emptyFields.push('Objekttyp');
         }
@@ -411,7 +411,7 @@ var CustomDataTypeVIS = (function(superClass) {
             fullContent: fullContentElements.join(', '),
             shortContent: shortContentElements.join(', ').slice(0, 50),
             title,
-            objectTypeConceptName: type,
+            objectTypeConceptLabel,
             emptyFields
         };
     };
@@ -424,13 +424,11 @@ var CustomDataTypeVIS = (function(superClass) {
         if (!danteConcept?.conceptURI || !danteConcept?.conceptName) return [];
 
         const concept = await this.__performGetRequest(
-            'https://api.dante.gbv.de/data?uri=' + danteConcept.conceptURI + '&properties=-',
-            'application/json'
+            'https://api.dante.gbv.de/data?uri=' + danteConcept.conceptURI + '&properties=-'
         );
 
         const ancestors = await this.__performGetRequest(
-            'https://api.dante.gbv.de/ancestors?uri=' + danteConcept.conceptURI + '&properties=-',
-            'application/json'
+            'https://api.dante.gbv.de/ancestors?uri=' + danteConcept.conceptURI + '&properties=-'
         );
 
         return concept.concat(ancestors)
@@ -518,7 +516,9 @@ var CustomDataTypeVIS = (function(superClass) {
             return this.__getVISDocument(documentId, type);
         }).then(result => {
             visDocument = result;
-            return this.__linkDocumentToObject(documentId, systemObjectId, uuid, objectTypeLabel, title, data.lk_objekttyp?.conceptName);
+            return this.__getObjectTypeConceptLabel(data);
+        }).then(objectTypeConceptLabel => {
+            return this.__linkDocumentToObject(documentId, systemObjectId, uuid, objectTypeLabel, objectTypeConceptLabel, title);
         }).then(result => {
             if (!result) throw type === 'Akte' ? 'visLinkCreateLinkFailureFile' : 'visLinkCreateLinkFailureProcess';
             const entryData = {
@@ -752,7 +752,7 @@ var CustomDataTypeVIS = (function(superClass) {
         return 'VIS-SmartClient: ' + cdata.zeichen + ' (' + (cdata.subtyp ?? cdata.typ) + ')';
     };
 
-    Plugin.__createDocument = function(type, systemObjectId, uuid, fullContent, shortContent, objectTypeLabel, title, objectTypeConceptName) {
+    Plugin.__createDocument = function(type, systemObjectId, uuid, fullContent, shortContent, objectTypeLabel, objectTypeConceptLabel, title) {
         const newDocumentData = { typ: 'Akte', subtyp: type.name };
 
         return this.__addVISDocument(type, fullContent, shortContent)
@@ -763,7 +763,7 @@ var CustomDataTypeVIS = (function(superClass) {
             }).then(newDocument => {
                 if (!newDocument) throw 'visCreationReadNewDocumentFailure';
                 newDocumentData.zeichen = newDocument.aktenzeichen;
-                return this.__linkDocumentToObject(newDocumentData.objektid, systemObjectId, uuid, objectTypeLabel, title, objectTypeConceptName);
+                return this.__linkDocumentToObject(newDocumentData.objektid, systemObjectId, uuid, objectTypeLabel, objectTypeConceptLabel, title);
             }).then(result => {
                 if (!result) throw 'visCreationCreateLinkFailure';
                 return newDocumentData;
@@ -811,13 +811,13 @@ var CustomDataTypeVIS = (function(superClass) {
         return this.__performMultiPartPostRequest(url, requestData);
     };
 
-    Plugin.__linkDocumentToObject = function(documentId, systemObjectId, uuid, objectTypeLabel, title, objectTypeConceptName) {
+    Plugin.__linkDocumentToObject = function(documentId, systemObjectId, uuid, objectTypeLabel, objectTypeConceptLabel, title) {
         const configuration = this.__getBaseConfiguration();
 
         const url = configuration.api_url + '/vapiui/'
             + configuration.mandate_id + '/addVerknuepfung/akteverknuepfung/' + documentId;
 
-        let name = configuration.link_name_prefix + (objectTypeConceptName ?? objectTypeLabel);
+        let name = configuration.link_name_prefix + (objectTypeConceptLabel ?? objectTypeLabel);
         if (title?.length) {
             name += ', ' + title;
         } else {
@@ -845,6 +845,16 @@ var CustomDataTypeVIS = (function(superClass) {
         };
         
         return this.__performPostRequest(url, requestData, 'application/json');
+    };
+
+    Plugin.__getObjectTypeConceptLabel = async function(data) {
+        if (!data.lk_objekttyp) return undefined;
+
+        const concept = await this.__performGetRequest(
+            'https://api.dante.gbv.de/data?uri=' + data.lk_objekttyp.conceptURI + '&properties=-'
+        );
+
+        return concept?.[0]?.prefLabel.de ?? concept?.[0]?.prefLabel.zxx;
     };
 
     Plugin.__performGetRequest = function(url) {
