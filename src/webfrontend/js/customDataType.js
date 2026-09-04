@@ -825,7 +825,7 @@ var CustomDataTypeVIS = (function(superClass) {
         }
         
         const requestData = {
-            'Name': name,
+            'Name': name.slice(0, 100),
             'URL':  this.__getExternalURL() + '/#/detail/' + uuid
         };
         
