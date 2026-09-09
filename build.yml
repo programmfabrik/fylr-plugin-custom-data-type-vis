@@ -1,0 +1,14 @@
+server:
+  install:
+  - l10n/custom-data-type-vis.csv
+webfrontend:
+  bundles:
+    - out: webfrontend/custom-data-type-vis.js
+      sources:
+      - src/webfrontend/js/customDataType.js
+    - out: webfrontend/custom-data-type-vis.css
+      sources:
+      - src/webfrontend/css/main.css
+
+zip_aliases:
+- CustomDataTypeVIS.zip
