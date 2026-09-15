@@ -437,18 +437,38 @@ var CustomDataTypeVIS = (function(superClass) {
     };
 
     Plugin.__getRegion = function(elements, short = false) {
-        if (elements.length < 2 || (short && elements.length < 3)) return undefined;
+        const { landkreis, gemeinde, gemarkung } = this.__getRegionLabels(elements);
 
         if (short) {
-            return elements[2];
+            return gemeinde;
         } else {
-            let result = 'Ldkr. ' + elements[1];
-            if (elements.length > 2) result += ', Gde. ' + elements[2];
-            if (elements.length > 3) result += ', Gmkg. ' + elements[3];
+            let result = 'Ldkr. ' + landkreis;
+            if (gemeinde) {
+                result += ', ';
+                if (!gemeinde.startsWith('Gfg.') && gemeinde !== 'Zugehörigkeit Ungeklärt') result += 'Gde. ';
+                result += gemeinde;
+            }
+            if (gemarkung) result += ', Gmkg. ' + gemarkung;
 
             return result;
         }
     };
+
+    Plugin.__getRegionLabels = function(elements) {
+        const landkreis = elements.length > 1 ? elements[1] : undefined;
+
+        let gemeinde, gemarkung;
+
+        if (elements.length > 2 && elements[2].startsWith('Samtgemeinde')) {
+            if (elements.length > 3) gemeinde = elements[3];
+            if (elements.length > 4) gemarkung = elements[4];
+        } else {
+            if (elements.length > 2) gemeinde = elements[2];
+            if (elements.length > 3) gemarkung = elements[3];
+        }
+
+        return { landkreis, gemeinde, gemarkung };
+    }
 
     Plugin.__getListValueFromObjectData = function(data, fieldName, subfieldName, filterFunction = (_) => _, numberOfEntries = 1) {
         const entries = data?.[fieldName]?.filter(filterFunction);
